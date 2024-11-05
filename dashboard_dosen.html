@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,41 +49,57 @@
     </div>
 
     <script>
-        const userId = sessionStorage.getItem('userId'); // Ambil ID user dari session storage
+        const userId = sessionStorage.getItem('userId');
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadNotifications();
-            loadDocuments();
+            loadMarkedDocuments(); // Load documents already marked by the lecturer
+            loadSearchableDocuments(); // Load documents based on search and filter
         });
 
         document.getElementById('filterForm').addEventListener('submit', function (event) {
             event.preventDefault();
-            loadDocuments();
+            loadSearchableDocuments();
         });
 
-        
-
-        function loadDocuments() {
-            const kategori = document.getElementById('kategori').value;
-            const jenis = document.getElementById('jenis').value;
-            const search = document.getElementById('search').value;
-
-            fetch(`api/get_documents.php?userId=${userId}&kategori=${kategori}&jenis=${jenis}&search=${search}`) // Endpoint to get documents
-                .then(response => response.json())
+        function loadMarkedDocuments() {
+            fetch(`https://apiteam.v-project.my.id/api/arsip/dokumen/ditandai?userId=${userId}`)
+                .then(response => response.ok ? response.json() : Promise.reject('Gagal memuat dokumen yang ditandai'))
                 .then(data => {
                     const documentList = document.getElementById('documentList');
                     documentList.innerHTML = ''; // Clear existing documents
                     if (data.documents.length > 0) {
                         data.documents.forEach(doc => {
-                            documentList.innerHTML += createDocumentCard(doc);
+                            documentList.innerHTML += createDocumentCard(doc, true);
+                        });
+                    } else {
+                        documentList.innerHTML = '<p class="text-center">Tidak ada dokumen yang sudah ditandai.</p>';
+                    }
+                })
+                .catch(error => console.error(error));
+        }
+
+        function loadSearchableDocuments() {
+            const kategori = document.getElementById('kategori').value;
+            const jenis = document.getElementById('jenis').value;
+            const search = document.getElementById('search').value;
+
+            fetch(`https://apiteam.v-project.my.id/api/arsip/dokumen?userId=${userId}&kategori=${kategori}&jenis=${jenis}&search=${search}`)
+                .then(response => response.ok ? response.json() : Promise.reject('Gagal memuat dokumen berdasarkan pencarian'))
+                .then(data => {
+                    const documentList = document.getElementById('documentList');
+                    documentList.innerHTML = ''; // Clear existing documents
+                    if (data.documents.length > 0) {
+                        data.documents.forEach(doc => {
+                            documentList.innerHTML += createDocumentCard(doc, false);
                         });
                     } else {
                         documentList.innerHTML = '<p class="text-center">Tidak ada dokumen yang sesuai dengan pencarian atau filter.</p>';
                     }
-                });
+                })
+                .catch(error => console.error(error));
         }
 
-        function createDocumentCard(doc) {
+        function createDocumentCard(doc, isMarked) {
             return `
                 <div class="col-md-4">
                     <div class="card mb-4 shadow-sm">
@@ -95,8 +111,8 @@
                             <p class="card-text"><strong>Jenis:</strong> ${capitalize(doc.jenis)}</p>
                             <a href="preview_dokumen.html?id=${doc.id}&from=dosen" class="btn btn-info btn-sm">Preview</a>
                             <a href="download_dokumen.html?id=${doc.id}" class="btn btn-success btn-sm">Download</a>
-                            <button onclick="toggleMark(${doc.id_dokumen}, ${doc.isMarked})" class="btn btn-secondary btn-sm">
-                                ${doc.isMarked ? 'Batal Tandai' : 'Tandai'}
+                            <button onclick="toggleMark(${doc.id_dokumen}, ${isMarked})" class="btn btn-secondary btn-sm">
+                                ${isMarked ? 'Batal Tandai' : 'Tandai'}
                             </button>
                         </div>
                     </div>
@@ -109,16 +125,25 @@
         }
 
         function toggleMark(id_dokumen, isMarked) {
-            const action = isMarked ? 'unmark' : 'mark';
-            fetch(`api/${action}_dokumen.php?id=${id_dokumen}`, {
-                method: 'POST'
+            const endpoint = isMarked
+                ? 'https://apiteam.v-project.my.id/api/arsip/dokumen/ditandai/hapus'
+                : 'https://apiteam.v-project.my.id/api/arsip/dokumen/ditandai/tambah';
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id_dokumen, userId })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    loadDocuments(); // Refresh the document list after marking/unmarking
+                    loadMarkedDocuments(); // Refresh the marked documents list after toggle
+                    loadSearchableDocuments(); // Refresh the searchable documents list after toggle
                 }
-            });
+            })
+            .catch(error => console.error('Gagal memperbarui status tandai dokumen:', error));
         }
     </script>
 </body>
