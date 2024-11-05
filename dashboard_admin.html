@@ -11,13 +11,6 @@
     <div class="container">
         <h1 class="mt-4">Dashboard Admin</h1>
 
-        <!-- Notifikasi pengguna yang perlu diverifikasi -->
-        <div id="notification" class="alert alert-warning d-flex justify-content-between align-items-center" style="display:none;">
-            <span><strong>Pemberitahuan:</strong> Ada <span id="unverifiedCount">0</span> pengguna yang perlu diverifikasi.</span>
-            <a href="verify.html" class="btn btn-outline-primary btn-sm">Verifikasi Sekarang</a>
-        </div>
-
-        <div id="message" class="alert alert-success" style="display:none;"></div>
 
         <form method="post" action="">
             <div class="row mb-4">
@@ -71,21 +64,21 @@
     </div>
 
     <script>
-        const documentList = document.getElementById('documentList');
-        const unverifiedCount = 2; // Ganti dengan nilai dinamis sesuai API
-        const message = ''; // Ganti dengan pesan dinamis jika ada
+        // const documentList = document.getElementById('documentList');
+        // const unverifiedCount = 2; // Ganti dengan nilai dinamis sesuai API
+        // const message = ''; // Ganti dengan pesan dinamis jika ada
 
-        // Tampilkan jumlah pengguna yang perlu diverifikasi
-        if (unverifiedCount > 0) {
-            document.getElementById('unverifiedCount').innerText = unverifiedCount;
-            document.getElementById('notification').style.display = 'flex';
-        }
+        // // Tampilkan jumlah pengguna yang perlu diverifikasi
+        // if (unverifiedCount > 0) {
+        //     document.getElementById('unverifiedCount').innerText = unverifiedCount;
+        //     document.getElementById('notification').style.display = 'flex';
+        // }
 
-        // Tampilkan pesan jika ada
-        if (message) {
-            document.getElementById('message').innerText = message;
-            document.getElementById('message').style.display = 'block';
-        }
+        // // Tampilkan pesan jika ada
+        // if (message) {
+        //     document.getElementById('message').innerText = message;
+        //     document.getElementById('message').style.display = 'block';
+        // }
 
         // Fungsi untuk mengambil dokumen dari API
         async function fetchDocuments() {

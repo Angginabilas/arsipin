@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="dashboard_dosen.css">
 </head>
 <body>
-
     <div class="container">
         <h1 class="mt-4">Dashboard Dosen</h1>
 
-        <!-- Form sortir kategori, jenis surat dan search -->
-        <form id="filterForm">
+        <!-- Form sortir kategori, jenis surat, dan search -->
+        <form id="filterForm" method="post" action="">
             <div class="row mb-4">
                 <div class="col">
                     <select name="kategori" class="form-select" id="kategori">
@@ -32,7 +31,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <input type="text" name="search" class="form-control" id="search" placeholder="Cari dokumen...">
+                    <input type="text" id="search" class="form-control" placeholder="Cari dokumen...">
                 </div>
                 <div class="col">
                     <button type="submit" class="btn btn-primary">Cari & Sortir</button>
@@ -46,7 +45,7 @@
         <div class="row" id="documentList"></div>
 
         <!-- Tombol logout -->
-        <a href="logout.php" class="btn btn-danger">Logout</a>
+        <a href="logout.html" class="btn btn-danger">Logout</a>
     </div>
 
     <script>
@@ -62,37 +61,13 @@
             loadDocuments();
         });
 
-        function loadNotifications() {
-            // Fetch notifications from your API
-            fetch('api/get_notifications.php') // Endpoint to get notifications
-                .then(response => response.json())
-                .then(data => {
-                    if (data.notification) {
-                        document.getElementById('notifications').innerText = data.notification;
-                        document.getElementById('notifications').style.display = 'block';
-                        loadNewDocuments(data.newDocumentIds);
-                    }
-                });
-        }
-
-        function loadNewDocuments(newDocumentIds) {
-            const documentList = document.getElementById('documentList');
-            documentList.innerHTML = ''; // Clear existing documents
-            newDocumentIds.forEach(id => {
-                fetch(`api/get_document.php?id=${id}`) // Endpoint to get document details
-                    .then(response => response.json())
-                    .then(doc => {
-                        documentList.innerHTML += createDocumentCard(doc);
-                    });
-            });
-        }
+        
 
         function loadDocuments() {
             const kategori = document.getElementById('kategori').value;
             const jenis = document.getElementById('jenis').value;
             const search = document.getElementById('search').value;
 
-            // Fetch documents based on filters
             fetch(`api/get_documents.php?userId=${userId}&kategori=${kategori}&jenis=${jenis}&search=${search}`) // Endpoint to get documents
                 .then(response => response.json())
                 .then(data => {
@@ -118,11 +93,11 @@
                             <p class="card-text"><strong>Tanggal Surat:</strong> ${doc.tanggal_surat}</p>
                             <p class="card-text"><strong>Kategori:</strong> ${capitalize(doc.kategori)}</p>
                             <p class="card-text"><strong>Jenis:</strong> ${capitalize(doc.jenis)}</p>
-                            <a href="preview_dokumen.php?id=${doc.id_dokumen}&from=dosen" class="btn btn-info btn-sm">Preview</a>
-                            <a href="download_dokumen.php?id=${doc.id_dokumen}" class="btn btn-success btn-sm">Download</a>
-                            <a href="mark_dokumen.php?id=${doc.id_dokumen}" class="btn btn-secondary btn-sm">
+                            <a href="preview_dokumen.html?id=${doc.id}&from=dosen" class="btn btn-info btn-sm">Preview</a>
+                            <a href="download_dokumen.html?id=${doc.id}" class="btn btn-success btn-sm">Download</a>
+                            <button onclick="toggleMark(${doc.id_dokumen}, ${doc.isMarked})" class="btn btn-secondary btn-sm">
                                 ${doc.isMarked ? 'Batal Tandai' : 'Tandai'}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -131,6 +106,19 @@
 
         function capitalize(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function toggleMark(id_dokumen, isMarked) {
+            const action = isMarked ? 'unmark' : 'mark';
+            fetch(`api/${action}_dokumen.php?id=${id_dokumen}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadDocuments(); // Refresh the document list after marking/unmarking
+                }
+            });
         }
     </script>
 </body>
