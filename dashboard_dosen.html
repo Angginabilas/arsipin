@@ -1,249 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Dosen</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="dashboard_dosen.css" />
-  </head>
-  <body>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard_dosen.css">
+</head>
+
+<body>
+
     <div class="container">
-      <h1 class="mt-4">Dashboard Dosen</h1>
+        <h1 class="mt-4">Dashboard Dosen</h1>
 
-      <!-- Form sortir kategori, jenis surat dan search -->
-      <form id="filterForm">
-        <div class="row mb-4">
-          <div class="col">
-            <select name="kategori" class="form-select" id="kategori">
-              <option value="">Semua Kategori</option>
-              <option value="pendidikan">Pendidikan</option>
-              <option value="penelitian">Penelitian</option>
-              <option value="pengabdian">Pengabdian</option>
-              <option value="lainnya">Lainnya</option>
-            </select>
-          </div>
-          <div class="col">
-            <select name="jenis" class="form-select" id="jenis">
-              <option value="">Semua Jenis</option>
-              <option value="surat_keputusan">Surat Keputusan</option>
-              <option value="surat_tugas">Surat Tugas</option>
-            </select>
-          </div>
-          <div class="col">
-            <input
-              type="text"
-              name="search"
-              class="form-control"
-              id="search"
-              placeholder="Cari dokumen..."
-            />
-          </div>
-          <div class="col">
-            <button type="submit" class="btn btn-primary">Cari & Sortir</button>
-          </div>
-        </div>
-      </form>
+        <!-- Form sortir kategori, jenis surat dan search -->
+        <form id="filterForm">
+            <div class="row mb-4">
+                <div class="col">
+                    <select name="kategori" class="form-select" id="kategori">
+                        <option value="">Semua Kategori</option>
+                        <option value="pendidikan">Pendidikan</option>
+                        <option value="penelitian">Penelitian</option>
+                        <option value="pengabdian">Pengabdian</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <select name="jenis" class="form-select" id="jenis">
+                        <option value="">Semua Jenis</option>
+                        <option value="surat_keputusan">Surat Keputusan</option>
+                        <option value="surat_tugas">Surat Tugas</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="text" name="search" class="form-control" id="search" placeholder="Cari dokumen...">
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Cari & Sortir</button>
+                </div>
+            </div>
+        </form>
 
-      <div
-        id="notifications"
-        class="alert alert-info"
-        style="display: none"
-      ></div>
+        <div id="notifications" class="alert alert-info" style="display:none;"></div>
 
-      <!-- Menampilkan dokumen dalam bentuk kartu -->
-      <div class="row" id="documentList"></div>
+        <!-- Menampilkan dokumen dalam bentuk kartu -->
+        <div class="row" id="documentList"></div>
 
-      <!-- Tombol logout -->
-      <a href="logout.html" class="btn btn-danger">Logout</a>
+        <!-- Tombol logout -->
+        <a href="logout.html" class="btn btn-danger">Logout</a>
     </div>
 
     <script>
-      async function fetchDocuments() {
-        try {
-          const token = localStorage.getItem("auth_token");
-          const response = await fetch(
-            "https://apiteam.v-project.my.id/api/arsip/d/dashboard",
-            {
-              method: "GET",
-              headers: {
-                Accept: "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+        async function fetchDocuments() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('https://apiteam.v-project.my.id/api/arsip/d/dashboard', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
 
-          if (response.ok) {
-            const responseData = await response.json();
-            const documents = responseData.data;
+                if (response.ok) {
+                    const responseData = await response.json();
+                    const documents = responseData.data;
 
-            const documentList = document.getElementById("documentList");
-            documentList.innerHTML = ""; // Kosongkan daftar dokumen sebelum mengisinya
+                    const documentList = document.getElementById('documentList');
+                    documentList.innerHTML = ''; // Kosongkan daftar dokumen sebelum mengisinya
 
-            if (documents.length > 0) {
-              documents.forEach((item) => {
-                const doc = item.dokumen; // Ambil dokumen dari item
-                const col = document.createElement("div");
-                col.className = "col-md-4";
-                col.innerHTML = `
+                    if (documents.length > 0) {
+                        documents.forEach(item => {
+                            const doc = item; // Ambil objek dokumen langsung, tidak perlu item.dokumen
+                            const col = document.createElement('div');
+                            col.className = 'col-md-4';
+                            col.innerHTML = `
                                 <div class="card mb-4">
                                     <div class="card-body">
                                         <h5 class="card-title">${doc.title}</h5>
-                                        <p class="card-text"><strong>No. Surat:</strong> ${
-                                          doc.no_surat
-                                        }</p>
-                                        <p class="card-text"><strong>Tanggal Surat:</strong> ${
-                                          doc.tanggal_surat
-                                        }</p>
-                                        <p class="card-text"><strong>Kategori:</strong> ${capitalize(
-                                          doc.kategori
-                                        )}</p>
-                                        <p class="card-text"><strong>Jenis:</strong> ${capitalize(
-                                          doc.jenis
-                                        )}</p>
-                                        <a onclick="previewDocument(${
-                                          doc.id
-                                        })" class="btn btn-info btn-sm">Preview</a>
-                                        
-                                         <a onclick="downloadDocument(${
-                                           doc.id
-                                         })" class="btn btn-success btn-sm">Download</a>
-                                        <a onclick="mark_dokumen(${
-                                          doc.id
-                                        })" class="btn btn-danger btn-sm">Batal Tandai</a>
+                                        <p class="card-text"><strong>No. Surat:</strong> ${doc.no_surat}</p>
+                                        <p class="card-text"><strong>Tanggal Surat:</strong> ${doc.tanggal_surat}</p>
+                                        <p class="card-text"><strong>Kategori:</strong> ${capitalize(doc.kategori)}</p>
+                                        <p class="card-text"><strong>Jenis:</strong> ${capitalize(doc.jenis)}</p>
+                                        <a href="preview_dosen.html?id=${doc.id}" class="btn btn-primary">Preview</a>
+                                        <a onclick="downloadDocument(${doc.id})" class="btn btn-success btn-sm">Download</a>
+                                        <a onclick="mark_dokumen(${doc.id})" class="btn btn-danger btn-sm">Batal Tandai</a>
                                     </div>
                                 </div>
                             `;
-                documentList.appendChild(col);
-              });
-            } else {
-              documentList.innerHTML = "<p>Tidak ada dokumen terbaru.</p>";
+                            documentList.appendChild(col);
+                        });
+
+                    } else {
+                        documentList.innerHTML = '<p>Tidak ada dokumen terbaru.</p>';
+                    }
+                } else {
+                    console.error('Error fetching documents:', response.status, response.statusText);
+                    documentList.innerHTML = '<p>Tidak terdapat dokumen yang ditandai</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching documents:', error);
+                documentList.innerHTML = '<p>Terjadi kesalahan saat memuat dokumen.</p>';
             }
-          } else {
-            console.error(
-              "Error fetching documents:",
-              response.status,
-              response.statusText
-            );
-            documentList.innerHTML = "<p>Gagal memuat dokumen.</p>";
-          }
-        } catch (error) {
-          console.error("Error fetching documents:", error);
-          documentList.innerHTML =
-            "<p>Terjadi kesalahan saat memuat dokumen.</p>";
         }
-      }
 
-      async function mark_dokumen(id) {
-        try {
-          const token = localStorage.getItem("auth_token");
-          const response = await fetch(
-            `https://apiteam.v-project.my.id/api/arsip/d/ditandai/${id}`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json", //Kalau kena cors policy
-                Authorization: `Bearer ${token}`,
-              },
+        async function mark_dokumen(id) {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`https://apiteam.v-project.my.id/api/arsip/d/ditandai/${id}`, {
+                    method: 'DELETE', // Menggunakan DELETE untuk batal tandai
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+
+                if (response.ok) {
+                    console.log("Dokumen berhasil dibatalkan tandainya");
+                    window.location.reload(); // Refresh halaman setelah berhasil
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error batal tandai dokumen:', errorData);
+                }
+            } catch (error) {
+                console.error('Error batal tandai dokumen:', error);
             }
-          );
-
-          if (response.ok) {
-            console.log("dokumen berhasil dihapus");
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error("Error hapus documents:", error);
         }
-      }
 
-      // Fungsi untuk preview dokumen
-async function previewDocument(id) {
-  try {
-    const token = localStorage.getItem("auth_token");
-    const response = await fetch(
-      `https://apiteam.v-project.my.id/api/arsip/d/preview/${id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+        async function downloadDocument(id) {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`https://apiteam.v-project.my.id/api/arsip/dokumen/download/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
 
-    if (response.ok) {
-      // Mengambil blob file dan membuat URL untuk preview
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
 
-      // Membuka dokumen di tab baru untuk preview
-      window.open(url, "_blank");
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `dokumen_${id}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
 
-      // Membersihkan URL blob setelah preview
-      window.URL.revokeObjectURL(url);
-    } else {
-      console.error(
-        "Gagal untuk preview dokumen:",
-        response.status,
-        response.statusText
-      );
-    }
-  } catch (error) {
-    console.error("Error saat preview dokumen:", error);
-  }
-}
-
-
-      // Fungsi untuk download dokumen
-      async function downloadDocument(id) {
-        try {
-          const token = localStorage.getItem("auth_token");
-          const response = await fetch(
-            `https://apiteam.v-project.my.id/api/arsip/dokumen/download/${id}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    console.error('Gagal untuk download dokumen:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error saat download dokumen:', error);
             }
-          );
-
-          if (response.ok) {
-            // Mengambil blob file dan membuat URL untuk download
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-
-            // Membuat elemen <a> untuk download
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `dokumen_${id}.pdf`; // Nama file dapat disesuaikan
-            document.body.appendChild(a);
-            a.click();
-
-            // Menghapus elemen <a> dan URL setelah download
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-          } else {
-            console.error(
-              "Gagal untuk download dokumen:",
-              response.status,
-              response.statusText
-            );
-          }
-        } catch (error) {
-          console.error("Error saat download dokumen:", error);
         }
-      }
 
-      // Panggil fungsi fetchDocuments saat halaman dimuat
-      fetchDocuments();
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
 
-      function capitalize(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-      }
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchDocuments();
+        });
     </script>
-  </body>
+</body>
+
 </html>
